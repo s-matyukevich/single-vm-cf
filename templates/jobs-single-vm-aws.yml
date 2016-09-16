@@ -1,0 +1,177 @@
+
+jobs:
+- name: main
+  instances: 1
+  resource_pool: main
+
+  networks:
+  - name: default
+    static_ips: (( meta.private_ip ))
+    default: [gateway, dns]
+  - name: vip
+    static_ips: (( meta.eip ))
+
+  templates:
+  - name: consul_agent
+    release: cf
+  - name: haproxy
+    release: cf
+  - name: nats
+    release: cf
+  - name: nats_stream_forwarder
+    release: cf
+  - name: etcd
+    release: cf
+  - name: etcd_metrics_server
+    release: cf
+  - name: blobstore
+    release: cf
+  - name: postgres
+    release: cf
+  - name: uaa
+    release: cf
+  - name: java-buildpack
+    release: cf
+  - name: java-offline-buildpack
+    release: cf
+  - name: go-buildpack
+    release: cf
+  - name: binary-buildpack
+    release: cf
+  - name: nodejs-buildpack
+    release: cf
+  - name: ruby-buildpack
+    release: cf
+  - name: php-buildpack
+    release: cf
+  - name: python-buildpack
+    release: cf
+  - name: staticfile-buildpack
+    release: cf
+  - name: cloud_controller_ng
+    release: cf
+  - name: cloud_controller_worker
+    release: cf
+  - name: hm9000
+    release: cf
+  - name: dea_next
+    release: cf
+  - name: dea_logging_agent
+    release: cf
+  - name: doppler
+    release: cf
+  - name: syslog_drain_binder
+    release: cf
+  - name: loggregator_trafficcontroller
+    release: cf
+  - name: gorouter
+    release: cf
+  - name: metron_agent
+    release: cf
+  - name: route_registrar
+    release: cf
+
+  properties:
+    consul:
+      agent:
+        mode: server
+        services:
+          etcd:
+            name: cf-etcd
+          blobstore: {}
+          uaa: {}
+          cloud_controller_ng: {}
+          hm9000: {}
+          dea:
+            check:
+              interval: 5m
+              name: dns_health_check
+              script: /var/vcap/jobs/dea_next/bin/dns_health_check
+              status: passing
+          loggregator_trafficcontroller: {}
+          gorouter: {}
+    dea_next:
+      zone: z1
+    doppler:
+      zone: z1
+    traffic_controller:
+      zone: z1
+    metron_agent:
+      zone: z1
+    loggregator:
+      uaa:
+        client_secret: DOPPLER_SECRET
+    route_registrar:
+      routes:
+      - name: blobstore
+        port: 8086
+        registration_interval: 20s
+        tags:
+          component: blobstore
+        uris:
+        - (( "blobstore." .properties.system_domain ))
+      - health_check:
+          name: uaa-healthcheck
+          script_path: /var/vcap/jobs/uaa/bin/health_check
+        name: uaa
+        port: 8085
+        registration_interval: 4s
+        tags:
+          component: uaa
+        uris:
+        - (( "uaa." .properties.system_domain ))
+        - (( "*.uaa." .properties.system_domain ))
+        - (( "login." .properties.system_domain ))
+        - (( "*.login." .properties.system_domain ))
+      - name: api
+        port: 9022
+        registration_interval: 20s
+        tags:
+          component: CloudController
+        uris:
+        - (( "api." .properties.system_domain ))
+      - name: hm9000
+        port: 5155
+        registration_interval: 20s
+        tags:
+          component: HM9K
+        uris:
+        - (( "mh9000." .properties.system_domain ))
+      - name: doppler
+        port: 8081
+        registration_interval: 20s
+        uris:
+        - (( "doppler." .properties.system_domain ))
+      - name: loggregator
+        port: 8084
+        registration_interval: 20s
+        uris:
+        - (( "loggregator." .properties.system_domain ))
+
+
+- name: acceptance_tests
+  networks:
+  - name: default
+  instances: 1
+  lifecycle: errand
+  resource_pool: main
+  templates:
+  - name: acceptance-tests
+    release: cf
+- name: smoke_tests
+  networks:
+  - name: default
+  instances: 1
+  lifecycle: errand
+  resource_pool: main
+  templates:
+  - name: smoke-tests
+    release: cf
+
+properties: 
+  <<: (( merge ))
+
+meta: 
+  <<: (( merge ))
+  eip: (( merge ))
+  private_ip: (( merge ))

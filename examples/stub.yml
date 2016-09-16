@@ -1,0 +1,28 @@
+---
+meta:
+  eip: 52.9.183.87 
+  private_ip: 10.0.0.10
+  aws:
+    availability_zone: us-west-1c
+    subnet_id: subnet-7de93b19
+
+director_uuid: 66651214-b18c-4a26-b6d0-9642283b4206
+
+networks:
+- name: default 
+  subnets:
+    - range: 10.0.0.0/24
+      reserved:
+        - 10.0.0.2 - 10.0.0.9
+      static:
+        - 10.0.0.10 - 10.0.6.15
+      gateway: 10.0.0.1
+      dns:
+        - 10.0.0.2
+      cloud_properties:
+        security_groups:
+          - cf
+          - training_sg
+        subnet: (( meta.aws.subnet_id ))
+- name: vip
+  type: vip
