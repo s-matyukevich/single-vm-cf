@@ -4,9 +4,8 @@ meta:
 
   zones:
     z1: (( meta.aws.availability_zone ))
-    z2: (( meta.aws.availability_zone )) #this zone is used only in fake resource pools
 
-  system_domain: (( meta.eip ".xip.io" ))
+  system_domain: (( merge ))
 
   webdav_config:
     ca_cert: ""
@@ -21,47 +20,110 @@ meta:
     name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
     version: latest
 
-  consul_servers: (( meta.private_ip )) 
+  consul_servers: [ (( meta.private_ip )) ] 
 
 
 properties:
   <<: (( merge ))
+  databases:
+    db_scheme: postgres
+    port: 5432
+    address: 127.0.0.1
+    databases:
+      - tag: cc
+        name: ccdb
+        citext: true
+      - tag: uaa
+        name: uaadb
+        citext: true
+    roles:
+      - tag: admin
+        name: uaaadmin
+        password: password
+      - tag: admin
+        name: ccadmin
+        password: admin
+    address: 127.0.0.1
   blobstore:
     port: 8086
+    tls:
+      port: 4043
+      cert: |
+        -----BEGIN CERTIFICATE-----
+        MIIC0TCCAjoCCQDRLH9gxoogFzANBgkqhkiG9w0BAQUFADCBrDELMAkGA1UEBhMC
+        VVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhOZXcgWW9yazEeMBwGA1UE
+        ChMVUGl2b3RhbCBTb2Z0d2FyZSwgSW5jMRUwEwYDVQQLEwxDbG91ZEZvdW5kcnkx
+        GjAYBgNVBAMUESoubG9jYWwucGNmZGV2LmlvMSQwIgYJKoZIhvcNAQkBFhVwY2Zk
+        ZXYtZW5nQHBpdm90YWwuaW8wHhcNMTYwMzA5MTUxMzE4WhcNMTcwMzA5MTUxMzE4
+        WjCBrDELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhO
+        ZXcgWW9yazEeMBwGA1UEChMVUGl2b3RhbCBTb2Z0d2FyZSwgSW5jMRUwEwYDVQQL
+        EwxDbG91ZEZvdW5kcnkxGjAYBgNVBAMUESoubG9jYWwucGNmZGV2LmlvMSQwIgYJ
+        KoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBpdm90YWwuaW8wgZ8wDQYJKoZIhvcNAQEB
+        BQADgY0AMIGJAoGBAKpQpDfxV0enkW9q37vz6GAqGzQI4kJaOq0Vu0aNJE0QguZV
+        y2JZaBGdYE25hviPesDhrFASUeMek//1FgpntnRU52AsweHJ67KayFEppk8qC5yd
+        XOm177O4QKbMmA6BC3BMnF1nLnKqTS71cbGfzvqaAmNlr22BJP7krQleXiFzAgMB
+        AAEwDQYJKoZIhvcNAQEFBQADgYEAKor/gSMkfVFPfmTLuCvH3YrvSFRPjTxXHeMR
+        8C6hmkOHxw2tgxc5WI0+ZLCgVCS87ZiLoTFWAmeeUb6S2nIHr+WhTHr11Y+0EjZa
+        WWv8728elfnHAiWfmKgn80LEOVLU8dDciykSRGOdDYnTAXLgtZOxfLeReR232JuH
+        TkCCeJc=
+        -----END CERTIFICATE-----
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIICXgIBAAKBgQCqUKQ38VdHp5Fvat+78+hgKhs0COJCWjqtFbtGjSRNEILmVcti
+        WWgRnWBNuYb4j3rA4axQElHjHpP/9RYKZ7Z0VOdgLMHhyeuymshRKaZPKgucnVzp
+        te+zuECmzJgOgQtwTJxdZy5yqk0u9XGxn876mgJjZa9tgST+5K0JXl4hcwIDAQAB
+        AoGAFMLx0dP8tMJriy53CZ1pBVf8qvIuSrJfFrxgcPBBrZdGrbdlrJ6Dfio2FCN6
+        nZA4AY1BCR3Cl7IhjoEc57XO2tpv7Ct5YZU3R/UGMZBTQJGTMdYLsXKVQPJFZZfr
+        nFvnL+dks1xmiLOPbSw45qvsC+KrQVFGV6ZqD6ZxjPKtlwECQQDiUcWMmL5k07XM
+        lvXHp/ZrfFdwBjlAcHDYNbQM0zid6C4m6YD1WI6zU/oCCS+gCT4cauoad2hcsUoN
+        zj1phOzzAkEAwKahynDyef2kSjsD8zDqY+HuRBKtDa8WB1mOgU737wIx8kfXgbNg
+        MlChsARn0yThm1L2yx4ZTk+PAtxAr4UZgQJBALRQgDuXisIcZ1E8yU+sg8l5hNSt
+        MLolm9K3Xt+E/ivZS8QW8HcJepBoDN3IYdh45LKRgDlb/5syaZT8R7Olg38CQQC3
+        EKDFgjan/YJUl2fVfDH+3/5N6YFQc4P3T/6+mY+4KtnTZLlAondS2JQMcuNGHNHV
+        iyzBLsTVSXyYNzuwjkYBAkEAq/pT9lmw42qc6AQk/LcfZFYXKV21m5LCDa95/7X2
+        TVeavLJv6412vDf+E6r/5jG634SsMkRDGeUsW9gUvPnaXg==
+        -----END RSA PRIVATE KEY-----
+    admin_users:
+      - username: admin
+        password: admin
+    secure_link:
+      secret: secure-link-secret
   traffic_controller:
+    zone: z1
     outgoing_port: 8084
 
+  doppler:
+    port: 443
+    zone: z1
+    outgoing_port: 8083
+
+  loggregator:
+    doppler_port: 8083
+
   nats:
-    machines: (( meta.private_ip )) 
+    machines: [ (( meta.private_ip )) ] 
     user: nats
     password: nats
 
   etcd:
-    machines: (( meta.private_ip )) 
+    machines: [ (( meta.private_ip )) ] 
 
 
   system_domain: (( meta.system_domain ))
   app_domains:
    - (( meta.system_domain ))
 
-  system_domain_organization: SYSTEM_DOMAIN_ORGANIZATION
+  system_domain_organization: cf-training
 
   ssl:
     skip_cert_verify: true
 
 
-  logger_endpoint:
-    port: 4443
-
-  loggregator:
-    blacklisted_syslog_ranges:
-    - start: 10.10.0.0
-      end: 10.10.255.255
-
   loggregator_endpoint:
     shared_secret: loggregator-secret
 
   cc:
+    run_prestart_migrations: false
     resource_pool:
       blobstore_type: webdav
       webdav_config: (( meta.webdav_config ))
@@ -80,7 +142,7 @@ properties:
     bulk_api_password: bulk-api-pass
     db_encryption_key: db-encryption-key
   ccdb:
-    db_scheme: postgress
+    db_scheme: postgres
     roles:
       - tag: admin
         name: ccadmin
@@ -91,20 +153,147 @@ properties:
     address: 127.0.0.1
     port: 5432
 
-  dea_next:
-    deny_networks:
-      - 169.254.0.0/16 # AWS Status
-      - 10.10.0.0/16
-    allow_networks: (( merge || ["10.10.0.2/32"] )) # Amazon DNS
-
-
   router:
     status:
       user: router-user
       password: router-pass
+    debug_address: 0.0.0.0:17003
+    enable_ssl: true
+    ssl_cert: |
+      -----BEGIN CERTIFICATE-----
+      MIIGqTCCBRGgAwIBAgIJALiQgFdICQWiMA0GCSqGSIb3DQEBCwUAMIHOMQswCQYD
+      VQQGEwJVUzERMA8GA1UECBMITmV3IFlvcmsxETAPBgNVBAcTCE5ldyBZb3JrMRAw
+      DgYDVQQKEwdQaXZvdGFsMRYwFAYDVQQLEw1DbG91ZCBGb3VuZHJ5MUkwRwYDVQQD
+      FEAqLmxvY2FsLnBjZmRldi5pbywqLmxvZ2luLmxvY2FsLnBjZmRldi5pbywgKi51
+      YWEubG9jYWwucGNmZGV2LmlvMSQwIgYJKoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBp
+      dm90YWwuaW8wHhcNMTYwNDA2MjE1MTU1WhcNMTgwNDA2MjE1MTU1WjCBzjELMAkG
+      A1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhOZXcgWW9yazEQ
+      MA4GA1UEChMHUGl2b3RhbDEWMBQGA1UECxMNQ2xvdWQgRm91bmRyeTFJMEcGA1UE
+      AxRAKi5sb2NhbC5wY2ZkZXYuaW8sKi5sb2dpbi5sb2NhbC5wY2ZkZXYuaW8sICou
+      dWFhLmxvY2FsLnBjZmRldi5pbzEkMCIGCSqGSIb3DQEJARYVcGNmZGV2LWVuZ0Bw
+      aXZvdGFsLmlvMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAyFt7kzng
+      mcjaAghcnWzTjqmxBqDxxVeDORdUEncsDP1zW8rvP5HXIdkch8sqPFSL1aKcCwj2
+      ytIQLqKr3o0Gx8MIhxQfpGwNtg4nrNpKLim6agE8CuDMu9w9s3/fIhbQXKJE2Yz5
+      yNMo9UBtcNjX77EGUjjKD1GRgiQKeugfE+XQcc5IcniVZcSzJi8279951pXk1sDB
+      j9kczsP91z34UZnTCrtYXyk5iV7IYeTXB+UuNItIWm+gIYf6084Pz2ADtgMBswv6
+      LcCGZJBGluMCklrXg7Pn1CfaQOCPYj2fyt5YqQDGB5F8moWatw14ZxnsDBi2xqQK
+      ryJYa2vYdKiVIWewD4iRpS5HHVjETYNlu2W5ypfRfGXvc0110IhHS83+bcJoUFUn
+      u9bHo9qqshx/Bq6ew0iR12negzVHMI5R8+EupW2smmJu3n8d0L3NZA5eEfJgpvGd
+      DALuv0+dI0KLBAPMrgGq7B47l0ygvO+MOWudmzSzvsXvDxqs8q/8EqHvAgMBAAGj
+      ggGGMIIBgjBMBgNVHREERTBDghEqLmxvY2FsLnBjZmRldi5pb4IVKi51YWEubG9j
+      YWwucGNmZGV2LmlvghcqLmxvZ2luLmxvY2FsLnBjZmRldi5pbzAdBgNVHQ4EFgQU
+      5ir0R2vhcWqdd7Bm3HnflLQMIOQwggEDBgNVHSMEgfswgfiAFOYq9Edr4XFqnXew
+      Ztx535S0DCDkoYHUpIHRMIHOMQswCQYDVQQGEwJVUzERMA8GA1UECBMITmV3IFlv
+      cmsxETAPBgNVBAcTCE5ldyBZb3JrMRAwDgYDVQQKEwdQaXZvdGFsMRYwFAYDVQQL
+      Ew1DbG91ZCBGb3VuZHJ5MUkwRwYDVQQDFEAqLmxvY2FsLnBjZmRldi5pbywqLmxv
+      Z2luLmxvY2FsLnBjZmRldi5pbywgKi51YWEubG9jYWwucGNmZGV2LmlvMSQwIgYJ
+      KoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBpdm90YWwuaW+CCQC4kIBXSAkFojAMBgNV
+      HRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBgQBB9E/Mc/Zq/RJlLiu20EU62xjw
+      WWYAPCGIvo64GvkC8N+mMZL8qHaSsYGKrvEPl30kIRaXfO2RT5Mhx8CyYhFVrWCq
+      oRMVY2Li0h2vMYhRIlAjxzn6ZVUbd50t6hEmXioh6LxbrUUg/AXfbMuv2sW94xjx
+      vjUul7ZO8JfC7Uk2g5rngC7yz4mXI1sXlIq0xpRAxdBMreH9uG48xlO6cE/5Xzim
+      AmjvPWaCBIgiiJmW9lpt3oB+vttHtNHY+mnYtx9iE/R9mCL513uhsTtqOKLPN1Vb
+      D9iouxOW4gXN7NnhNSKyzBVFh+SInj3moxcTQAgKbXOq6oaJEz61VedGVyh0ncpi
+      pbtzQcoxSC88pMTZgm8ZFT5aL+f3Pod7MMAeuY3R24+JtlOlW5VYvwRfl050u5rF
+      LgeP1t+Kpxpd0OxjShWhGoYD4MqJyfqPXjYSd5uSRRTxgZFuSrO+VjXcJfkBqfss
+      RaK+wxioZDzc5z3vDJjaZGFdtki6f2hwsF1UPVw=
+      -----END CERTIFICATE-----
+    ssl_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      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
+      -----END RSA PRIVATE KEY-----
+    ssl_skip_validation: true
+    route_services_secret: route-services-secret
+    route_services_recommend_https: false
 
   uaa:
     port: 8085
+    sslCertificate: |
+      -----BEGIN CERTIFICATE-----
+      MIIDdjCCAl4CCQDutDq0s9mZ7zANBgkqhkiG9w0BAQsFADB9MQswCQYDVQQGEwJV
+      UzERMA8GA1UECBMITmV3LVlvcmsxETAPBgNVBAcTCE5ldyBZb3JrMRAwDgYDVQQK
+      EwdQaXZvdGFsMRAwDgYDVQQLEwdQQ0YgRGV2MSQwIgYJKoZIhvcNAQkBFhVwY2Zk
+      ZXYtZW5nQHBpdm90YWwuaW8wHhcNMTYwODI1MTYzNTQ1WhcNMTcwODI1MTYzNTQ1
+      WjB9MQswCQYDVQQGEwJVUzERMA8GA1UECBMITmV3LVlvcmsxETAPBgNVBAcTCE5l
+      dyBZb3JrMRAwDgYDVQQKEwdQaXZvdGFsMRAwDgYDVQQLEwdQQ0YgRGV2MSQwIgYJ
+      KoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBpdm90YWwuaW8wggEiMA0GCSqGSIb3DQEB
+      AQUAA4IBDwAwggEKAoIBAQCasAI1gTdYJihXfrV6MUD/uSHD0B5wkoA0j6N28pd1
+      yuRowwS5PWFYKOF3zffnjv9FhK445kSw25muLbE2J6mnYb0n6J+6/3A+CoidVAQl
+      dzz6gotPioXGhsnE1EyFtoFgzkzYhxMu5FBuD8Vl+ctlhFT7aH39c2Y7j79jx5ZE
+      zyV5k0S9yt8zCkvlrmLMdTI69wkySCh3JZavfYgTD6tGN8YbVbVOsUEvEjg5qznK
+      l1y4jlZAvAN1tkfNX46NPty2pLsQZhZKV0RDSZSos8D4IUqjxlhZlRVDnQG3h2e4
+      v8sFoUNlpkbdDClyC00cVjFFXFq/ibUsImrpqBD4/EIFAgMBAAEwDQYJKoZIhvcN
+      AQELBQADggEBAEHJjnBTdH97wgsbebfxsRi1MLb8Ido96PD/vbc9A9b2CxDD18Sa
+      VVvkA6qqT4eD0E2AqaWJbiSqBpMiJLq2TmZuw0NkZFI55wWFxCBUOrEiMu+XGkgz
+      Q3yYm+KvbtMjsNcWOsWylY2cmRSkGdUa/Q+jqudjmFCFXBB8sBnzLCgAbKiSEFwF
+      T+P0AhPVo994s0yQzMPzg/E5If3pbrDfreu7Qto36pNOA1RdvDM6Chq9gF90DEFd
+      QtLqZtbkcukO4iWu2RYVDPCJRy/qDXLoOOkvJblZM2jhp6owEB0xTKwI1QhNkdr7
+      8Q1hCLQ8VeJFKTaZcsVCc9vSr0uHeOCplsc=
+      -----END CERTIFICATE-----
+    sslPrivateKey: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpAIBAAKCAQEAmrACNYE3WCYoV361ejFA/7khw9AecJKANI+jdvKXdcrkaMME
+      uT1hWCjhd833547/RYSuOOZEsNuZri2xNiepp2G9J+ifuv9wPgqInVQEJXc8+oKL
+      T4qFxobJxNRMhbaBYM5M2IcTLuRQbg/FZfnLZYRU+2h9/XNmO4+/Y8eWRM8leZNE
+      vcrfMwpL5a5izHUyOvcJMkgodyWWr32IEw+rRjfGG1W1TrFBLxI4Oas5ypdcuI5W
+      QLwDdbZHzV+OjT7ctqS7EGYWSldEQ0mUqLPA+CFKo8ZYWZUVQ50Bt4dnuL/LBaFD
+      ZaZG3QwpcgtNHFYxRVxav4m1LCJq6agQ+PxCBQIDAQABAoIBAE05fYDUp5qcQhuc
+      KGF+YWLJO/AT4H52xQZ4hzUE21R1HB6o7ZzE5eorTpSPASpbG1nLaWcCnlxk5Y4t
+      RYExv+LOSq631bZ3e8OdYqKYpRFHO+wcbAwjrbF07RoUmrdOa7y2gWq/1HXeicDI
+      otXMJRzjOcHhYrS7fdhSZUwdAgoLUYed9J195YNHPyQdUhn98+mYtSaHw5vXkzXB
+      owzIy+1GtiYQodoa74jiVO2l4Uo7cOVfw/iwE6Oj5WWZWncQ26rdDQUjyIL1gm7/
+      fk+wOYnDUjJC1dNeclMAEIktzsTkftNgC8w/2iBFBscInPaa8p/FDy9rY7feYd7q
+      VxZ2y8ECgYEAySKh0jqRoDQrWGtHF4SWu7ACBGE7jEmTMvfDF1Ld7Kpu07HFU98K
+      RiN+GczaLaPlelmc/lWeMvsY7ZxFO4HFSruJ+XeuxTgEIn8QJbLTyx0vb5TVt9Uc
+      V7m045hg/YLKKkKaNwjZZBzMmoO2h+7u02vnRuNzpaFhgMqufichBxkCgYEAxOHo
+      wqeichR53ye+FL/xQhNdD/btk8cT/DykqqH2PfFhGv/dh70jrHk/OaN8yVxhZKw2
+      NCA6dwQ8ChrUH35/2vgsLKIlZMSIs+hLq3clYoVqulsARnTiG0+klKr4WFGR4lzp
+      anD1ddl3Goi+TmiSqE0a4rfuye0LG5+3cPsHi80CgYEAkCowjrzIMGn0P5X1CNhS
+      KgkICRegVPdPeJK51PfidYXblgSviWQuuwMpmViJcXkuPDoLGwlHMQdlYLpHrVVg
+      kiZFyPeN33I9FHS6oCrDP6yVmYa2gONRQ1eqXg+URWD/grbmTlgbaXRy+rU5mcka
+      iZOn29mfxLIdbvDXjTiCpdECgYBlke5Uzcq+c9XTzFsBtWwvnHG8VLWIMYIb9OU2
+      qkuw9SAVn76X0nne9sYpZDByaVhNaZKlHaNL10FqLSEWBlrLipCvjg8gh0vHFKZF
+      FTiSNSY0cdIYhyBG2rWbhQCN/7b1Qt2gbhoT7FbHt5gGN2jBrtWZ9S4ZulKqs6Ed
+      hkQEWQKBgQCMrGxbbm4oxPNAnm2HIVi3wdzWXNSj8jJ92yVLcmwtOL5XyIvXXP0w
+      NJHPaDScrCLe+Rg2uesx3OUitaouwgi5qVNAnY9Q2LH7x1nUWhn9K4tKx9V6m8IR
+      KCP1QthazaNXbdGdY66hoHKSTCXzuvgJ+Irsr0+5PrdLgTZIu8UslA==
+      -----END RSA PRIVATE KEY-----
     admin:
       client_secret: admin-secret
     cc:
@@ -153,7 +342,7 @@ properties:
     scim:
       users:
       - name: admin
-        password: admin-secret
+        password: admin
         groups:
         - scim.write
         - scim.read
@@ -161,7 +350,7 @@ properties:
         - cloud_controller.admin
         - doppler.firehose
   uaadb:
-    db_scheme: postgress
+    db_scheme: postgresql
     roles:
       - tag: admin
         name: uaaadmin
@@ -170,7 +359,7 @@ properties:
       - tag: uaa
         name: uaadb
     address: 127.0.0.1
-    port: 55432
+    port: 5432
 
   consul:
     agent_cert: |+
@@ -454,113 +643,42 @@ properties:
       K6ntswZx6OVZDA==
       -----END CERTIFICATE-----
 
+  acceptance_tests:
+    api: (( "https://api." meta.system_domain ))
+    apps_domain: (( meta.system_domain ))
+    admin_user: admin
+    admin_password: admin
+    skip_ssl_validation: true
+    nodes: 1
+    include_apps: true
+    include_routing: false
+    verbose: true
+
 compilation:
+  network: default
   cloud_properties:
     instance_type: c3.xlarge
     availability_zone: (( meta.zones.z1 ))
 
 
-resource_pools:
-  - name: main
-    cloud_properties:
-      instance_type: c3.xlarge
-      ephemeral_disk:
-        size: 40_000
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-#only first resource pool is used, all other added for compatibility with cf.yml
+resource_pools: #fake pools, to make cf.yml build successfully
   - name: small_z1
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-
+    cloud_properties: empty_hash
   - name: small_z2
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z2 ))
-
+    cloud_properties: empty_hash
   - name: medium_z1
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-
+    cloud_properties: empty_hash
   - name: medium_z2
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z2 ))
-
+    cloud_properties: empty_hash
   - name: large_z1
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 65_536
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-
+    cloud_properties: empty_hash
   - name: large_z2
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 65_536
-        type: gp2
-      availability_zone: (( meta.zones.z2 ))
-
+    cloud_properties: empty_hash
   - name: runner_z1
-    cloud_properties:
-      instance_type: m3.large
-      ephemeral_disk:
-        size: 102_400
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-
+    cloud_properties: empty_hash
   - name: runner_z2
-    cloud_properties:
-      instance_type: m3.large
-      ephemeral_disk:
-        size: 102_400
-        type: gp2
-      availability_zone: (( meta.zones.z2 ))
-
+    cloud_properties: empty_hash
   - name: router_z1
-    cloud_properties:
-      instance_type: c3.large
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-      elbs: (( merge || ["cfrouter"] ))
-
+    cloud_properties: empty_hash
   - name: router_z2
-    cloud_properties:
-      instance_type: c3.large
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z2 ))
-      elbs: (( merge || ["cfrouter"] ))
-
-  - name: small_errand
-    cloud_properties:
-      instance_type: m3.medium
-      ephemeral_disk:
-        size: 10_240
-        type: gp2
-      availability_zone: (( meta.zones.z1 ))
-
-  - name: xlarge_errand
-    cloud_properties:
-      instance_type: c3.xlarge
-      availability_zone: (( meta.zones.z1 ))
-
+    cloud_properties: empty_hash

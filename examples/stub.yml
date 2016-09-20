@@ -1,6 +1,7 @@
 ---
 meta:
   eip: 52.9.183.87 
+  system_domain: "matyukevich.cf-training.net"
   private_ip: 10.0.0.10
   aws:
     availability_zone: us-west-1c
@@ -15,7 +16,7 @@ networks:
       reserved:
         - 10.0.0.2 - 10.0.0.9
       static:
-        - 10.0.0.10 - 10.0.6.15
+        - 10.0.0.10 - 10.0.0.15
       gateway: 10.0.0.1
       dns:
         - 10.0.0.2

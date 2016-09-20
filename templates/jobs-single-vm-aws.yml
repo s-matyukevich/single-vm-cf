@@ -14,8 +14,6 @@ jobs:
   templates:
   - name: consul_agent
     release: cf
-  - name: haproxy
-    release: cf
   - name: nats
     release: cf
   - name: nats_stream_forwarder
@@ -149,29 +147,62 @@ jobs:
         - (( "loggregator." .properties.system_domain ))
 
 
-- name: acceptance_tests
+- name: acceptance_tests_errand
   networks:
   - name: default
   instances: 1
   lifecycle: errand
-  resource_pool: main
+  resource_pool: errand
   templates:
   - name: acceptance-tests
     release: cf
-- name: smoke_tests
+- name: smoke_tests_errand
   networks:
   - name: default
   instances: 1
   lifecycle: errand
-  resource_pool: main
+  resource_pool: errand
   templates:
   - name: smoke-tests
     release: cf
 
 properties: 
   <<: (( merge ))
+  cc:
+    <<: (( merge ))
+    run_prestart_migrations: (( merge ))
+  doppler:
+    <<: (( merge ))
+    outgoing_port: (( merge ))
+
+  loggregator:
+    <<: (( merge ))
+    doppler_port: (( merge ))
 
 meta: 
   <<: (( merge ))
   eip: (( merge ))
   private_ip: (( merge ))
+  zones: (( merge ))
+
+resource_pools:
+  - name: main
+    network: default
+    stemcell: 
+      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+      version: latest
+    cloud_properties:
+      instance_type: c3.xlarge
+      root_disk:
+        size: 40_000
+        type: gp2
+      availability_zone: (( meta.zones.z1 ))
+  - name: errand
+    network: default
+    stemcell: 
+      name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+      version: latest
+    cloud_properties:
+      auto_assign_public_ip: true
+      instance_type: c3.large
+      availability_zone: (( meta.zones.z1 ))

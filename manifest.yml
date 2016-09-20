@@ -2,7 +2,7 @@ compilation:
   cloud_properties:
     availability_zone: us-west-1c
     instance_type: c3.xlarge
-  network: cf1
+  network: default
   reuse_compilation_vms: true
   workers: 6
 director_uuid: 66651214-b18c-4a26-b6d0-9642283b4206
@@ -53,7 +53,7 @@ jobs:
         tags:
           component: blobstore
         uris:
-        - blobstore.52.9.183.87.xip.io
+        - blobstore.matyukevich.cf-training.net
       - health_check:
           name: uaa-healthcheck
           script_path: /var/vcap/jobs/uaa/bin/health_check
@@ -63,41 +63,39 @@ jobs:
         tags:
           component: uaa
         uris:
-        - uaa.52.9.183.87.xip.io
-        - '*.uaa.52.9.183.87.xip.io'
-        - login.52.9.183.87.xip.io
-        - '*.login.52.9.183.87.xip.io'
+        - uaa.matyukevich.cf-training.net
+        - '*.uaa.matyukevich.cf-training.net'
+        - login.matyukevich.cf-training.net
+        - '*.login.matyukevich.cf-training.net'
       - name: api
         port: 9022
         registration_interval: 20s
         tags:
           component: CloudController
         uris:
-        - api.52.9.183.87.xip.io
+        - api.matyukevich.cf-training.net
       - name: hm9000
         port: 5155
         registration_interval: 20s
         tags:
           component: HM9K
         uris:
-        - mh9000.52.9.183.87.xip.io
+        - mh9000.matyukevich.cf-training.net
       - name: doppler
         port: 8081
         registration_interval: 20s
         uris:
-        - doppler.52.9.183.87.xip.io
+        - doppler.matyukevich.cf-training.net
       - name: loggregator
         port: 8084
         registration_interval: 20s
         uris:
-        - loggregator.52.9.183.87.xip.io
+        - loggregator.matyukevich.cf-training.net
     traffic_controller:
       zone: z1
   resource_pool: main
   templates:
   - name: consul_agent
-    release: cf
-  - name: haproxy
     release: cf
   - name: nats
     release: cf
@@ -155,19 +153,19 @@ jobs:
     release: cf
 - instances: 1
   lifecycle: errand
-  name: acceptance_tests
+  name: acceptance_tests_errand
   networks:
   - name: default
-  resource_pool: small_errand
+  resource_pool: errand
   templates:
   - name: acceptance-tests
     release: cf
-- instances: 0
+- instances: 1
   lifecycle: errand
-  name: smoke_tests
+  name: smoke_tests_errand
   networks:
   - name: default
-  resource_pool: small_errand
+  resource_pool: errand
   templates:
   - name: smoke-tests
     release: cf
@@ -187,24 +185,68 @@ networks:
     reserved:
     - 10.0.0.2 - 10.0.0.9
     static:
-    - 10.0.0.10 - 10.0.6.15
+    - 10.0.0.10 - 10.0.0.15
 - name: vip
   type: vip
 properties:
-  acceptance_tests: null
+  acceptance_tests:
+    admin_password: admin
+    admin_user: admin
+    api: https://api.matyukevich.cf-training.net
+    apps_domain: matyukevich.cf-training.net
+    include_apps: true
+    include_routing: false
+    nodes: 1
+    skip_ssl_validation: true
+    verbose: true
   app_domains:
-  - 52.9.183.87.xip.io
+  - matyukevich.cf-training.net
   app_ssh: null
   blobstore:
-    admin_users: null
+    admin_users:
+    - password: admin
+      username: admin
     port: 8086
     secure_link:
-      secret: null
+      secret: secure-link-secret
     tls:
       ca_cert: null
-      cert: null
-      port: 4443
-      private_key: null
+      cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIC0TCCAjoCCQDRLH9gxoogFzANBgkqhkiG9w0BAQUFADCBrDELMAkGA1UEBhMC
+        VVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhOZXcgWW9yazEeMBwGA1UE
+        ChMVUGl2b3RhbCBTb2Z0d2FyZSwgSW5jMRUwEwYDVQQLEwxDbG91ZEZvdW5kcnkx
+        GjAYBgNVBAMUESoubG9jYWwucGNmZGV2LmlvMSQwIgYJKoZIhvcNAQkBFhVwY2Zk
+        ZXYtZW5nQHBpdm90YWwuaW8wHhcNMTYwMzA5MTUxMzE4WhcNMTcwMzA5MTUxMzE4
+        WjCBrDELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhO
+        ZXcgWW9yazEeMBwGA1UEChMVUGl2b3RhbCBTb2Z0d2FyZSwgSW5jMRUwEwYDVQQL
+        EwxDbG91ZEZvdW5kcnkxGjAYBgNVBAMUESoubG9jYWwucGNmZGV2LmlvMSQwIgYJ
+        KoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBpdm90YWwuaW8wgZ8wDQYJKoZIhvcNAQEB
+        BQADgY0AMIGJAoGBAKpQpDfxV0enkW9q37vz6GAqGzQI4kJaOq0Vu0aNJE0QguZV
+        y2JZaBGdYE25hviPesDhrFASUeMek//1FgpntnRU52AsweHJ67KayFEppk8qC5yd
+        XOm177O4QKbMmA6BC3BMnF1nLnKqTS71cbGfzvqaAmNlr22BJP7krQleXiFzAgMB
+        AAEwDQYJKoZIhvcNAQEFBQADgYEAKor/gSMkfVFPfmTLuCvH3YrvSFRPjTxXHeMR
+        8C6hmkOHxw2tgxc5WI0+ZLCgVCS87ZiLoTFWAmeeUb6S2nIHr+WhTHr11Y+0EjZa
+        WWv8728elfnHAiWfmKgn80LEOVLU8dDciykSRGOdDYnTAXLgtZOxfLeReR232JuH
+        TkCCeJc=
+        -----END CERTIFICATE-----
+      port: 4043
+      private_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIICXgIBAAKBgQCqUKQ38VdHp5Fvat+78+hgKhs0COJCWjqtFbtGjSRNEILmVcti
+        WWgRnWBNuYb4j3rA4axQElHjHpP/9RYKZ7Z0VOdgLMHhyeuymshRKaZPKgucnVzp
+        te+zuECmzJgOgQtwTJxdZy5yqk0u9XGxn876mgJjZa9tgST+5K0JXl4hcwIDAQAB
+        AoGAFMLx0dP8tMJriy53CZ1pBVf8qvIuSrJfFrxgcPBBrZdGrbdlrJ6Dfio2FCN6
+        nZA4AY1BCR3Cl7IhjoEc57XO2tpv7Ct5YZU3R/UGMZBTQJGTMdYLsXKVQPJFZZfr
+        nFvnL+dks1xmiLOPbSw45qvsC+KrQVFGV6ZqD6ZxjPKtlwECQQDiUcWMmL5k07XM
+        lvXHp/ZrfFdwBjlAcHDYNbQM0zid6C4m6YD1WI6zU/oCCS+gCT4cauoad2hcsUoN
+        zj1phOzzAkEAwKahynDyef2kSjsD8zDqY+HuRBKtDa8WB1mOgU737wIx8kfXgbNg
+        MlChsARn0yThm1L2yx4ZTk+PAtxAr4UZgQJBALRQgDuXisIcZ1E8yU+sg8l5hNSt
+        MLolm9K3Xt+E/ivZS8QW8HcJepBoDN3IYdh45LKRgDlb/5syaZT8R7Olg38CQQC3
+        EKDFgjan/YJUl2fVfDH+3/5N6YFQc4P3T/6+mY+4KtnTZLlAondS2JQMcuNGHNHV
+        iyzBLsTVSXyYNzuwjkYBAkEAq/pT9lmw42qc6AQk/LcfZFYXKV21m5LCDa95/7X2
+        TVeavLJv6412vDf+E6r/5jG634SsMkRDGeUsW9gUvPnaXg==
+        -----END RSA PRIVATE KEY-----
   cc:
     allow_app_ssh_access: true
     allowed_cors_domains: []
@@ -219,7 +261,7 @@ properties:
     broker_client_timeout_seconds: 70
     buildpacks:
       blobstore_type: webdav
-      buildpack_directory_key: 52.9.183.87.xip.io-cc-buildpacks
+      buildpack_directory_key: matyukevich.cf-training.net-cc-buildpacks
       cdn: null
       fog_aws_storage_options: null
       fog_connection: null
@@ -227,7 +269,7 @@ properties:
         ca_cert: ""
         password: admin
         private_endpoint: https://blobstore.service.cf.internal:4043
-        public_endpoint: http://blobstore.52.9.183.87.xip.io
+        public_endpoint: http://blobstore.matyukevich.cf-training.net
         username: admin
     bulk_api_password: bulk-api-pass
     client_max_body_size: 15M
@@ -268,7 +310,7 @@ properties:
     droplets:
       blobstore_type: webdav
       cdn: null
-      droplet_directory_key: 52.9.183.87.xip.io-cc-droplets
+      droplet_directory_key: matyukevich.cf-training.net-cc-droplets
       fog_aws_storage_options: null
       fog_connection: null
       max_staged_droplets_stored: null
@@ -276,7 +318,7 @@ properties:
         ca_cert: ""
         password: admin
         private_endpoint: https://blobstore.service.cf.internal:4043
-        public_endpoint: http://blobstore.52.9.183.87.xip.io
+        public_endpoint: http://blobstore.matyukevich.cf-training.net
         username: admin
     external_host: api
     external_port: 9022
@@ -335,7 +377,7 @@ properties:
         enabled: true
         record_sql: obfuscated
     packages:
-      app_package_directory_key: 52.9.183.87.xip.io-cc-packages
+      app_package_directory_key: matyukevich.cf-training.net-cc-packages
       blobstore_type: webdav
       cdn: null
       fog_aws_storage_options: null
@@ -346,7 +388,7 @@ properties:
         ca_cert: ""
         password: admin
         private_endpoint: https://blobstore.service.cf.internal:4043
-        public_endpoint: http://blobstore.52.9.183.87.xip.io
+        public_endpoint: http://blobstore.matyukevich.cf-training.net
         username: admin
     quota_definitions:
       default:
@@ -361,13 +403,14 @@ properties:
       cdn: null
       fog_aws_storage_options: null
       fog_connection: null
-      resource_directory_key: 52.9.183.87.xip.io-cc-resources
+      resource_directory_key: matyukevich.cf-training.net-cc-resources
       webdav_config:
         ca_cert: ""
         password: admin
         private_endpoint: https://blobstore.service.cf.internal:4043
-        public_endpoint: http://blobstore.52.9.183.87.xip.io
+        public_endpoint: http://blobstore.matyukevich.cf-training.net
         username: admin
+    run_prestart_migrations: false
     security_event_logging:
       enabled: null
     security_group_definitions:
@@ -393,7 +436,7 @@ properties:
         protocol: udp
     service_usage_events:
       cutoff_age_in_days: 31
-    srv_api_uri: https://api.52.9.183.87.xip.io
+    srv_api_uri: https://api.matyukevich.cf-training.net
     stacks: null
     staging_upload_password: staging-pass
     staging_upload_user: staging-user
@@ -430,16 +473,16 @@ properties:
     webdav_config:
       blobstore_timeout: 5
       ca_cert: null
-      password: null
+      password: admin
       private_endpoint: https://blobstore.service.cf.internal:4443
-      public_endpoint: http://blobstore.52.9.183.87.xip.io
-      username: null
+      public_endpoint: http://blobstore.matyukevich.cf-training.net
+      username: admin
   ccdb:
     address: 127.0.0.1
     databases:
     - name: ccdb
       tag: cc
-    db_scheme: postgress
+    db_scheme: postgres
     port: 5432
     roles:
     - name: ccadmin
@@ -451,7 +494,8 @@ properties:
       domain: cf.internal
       log_level: null
       servers:
-        lan: 10.0.0.10
+        lan:
+        - 10.0.0.10
     agent_cert: |+
       -----BEGIN CERTIFICATE-----
       MIIEJTCCAg2gAwIBAgIQPrEW7lFCsRKIYPCRnoi/ITANBgkqhkiG9w0BAQsFADAT
@@ -592,19 +636,33 @@ properties:
       nfmDn3ANf/ISCP+V5V9C1eKL1wVDOT2TZVLaE3y092KCxU+FsptC7oNOmIcff/x0
       McJN1YzWFsHdV5hPCqAFV2zXDKMSy9Zd1B6wBUQCN5fl+8TLkFf/EA==
       -----END RSA PRIVATE KEY-----
-  databases: null
+  databases:
+    address: 127.0.0.1
+    databases:
+    - citext: true
+      name: ccdb
+      tag: cc
+    - citext: true
+      name: uaadb
+      tag: uaa
+    db_scheme: postgres
+    port: 5432
+    roles:
+    - name: uaaadmin
+      password: password
+      tag: admin
+    - name: ccadmin
+      password: admin
+      tag: admin
   dea_next:
     advertise_interval_in_seconds: 5
     allow_host_access: null
-    allow_networks:
-    - 10.10.0.2/32
+    allow_networks: []
     ca_cert: null
     client_cert: null
     client_key: null
     default_health_check_timeout: 60
-    deny_networks:
-    - 169.254.0.0/16
-    - 10.10.0.0/16
+    deny_networks: []
     directory_server_protocol: https
     disk_mb: null
     disk_overcommit_factor: null
@@ -636,14 +694,15 @@ properties:
       client_key: ""
     maxRetainedLogMessages: 100
     message_drain_buffer_size: null
-    port: 4443
+    outgoing_port: 8083
+    port: 443
     tls:
       enable: null
       port: null
       server_cert: null
       server_key: null
     unmarshaller_count: 5
-    zone: null
+    zone: z1
   doppler_endpoint:
     shared_secret: loggregator-secret
   dropsonde:
@@ -658,7 +717,8 @@ properties:
       name: etcd_z1
     - instances: 1
       name: etcd_z2
-    machines: 10.0.0.10
+    machines:
+    - 10.0.0.10
     peer_ca_cert: ""
     peer_cert: ""
     peer_key: ""
@@ -824,14 +884,12 @@ properties:
       gyJO22a7vWK8ejq7n8jUydkk8JdACgsD0oFWg8RNUK4ipiEgFMw77Xc0h/2r4WDx
       oI0ICM1bPqvFmGe7ETey/ke/jQc7306qUlG+TPL2Gk5NXBwTZGjG
       -----END RSA PRIVATE KEY-----
-    url: https://hm9000.52.9.183.87.xip.io
-  logger_endpoint:
-    port: 4443
+    url: https://hm9000.matyukevich.cf-training.net
+  logger_endpoint: null
   loggregator:
-    blacklisted_syslog_ranges:
-    - end: 10.10.255.255
-      start: 10.10.0.0
+    blacklisted_syslog_ranges: null
     debug: false
+    doppler_port: 8083
     etcd:
       ca_cert: ""
       machines:
@@ -853,8 +911,8 @@ properties:
     catalina_opts: null
     enabled: true
     links:
-      passwd: https://login.52.9.183.87.xip.io/forgot_password
-      signup: https://login.52.9.183.87.xip.io/create_account
+      passwd: https://login.matyukevich.cf-training.net/forgot_password
+      signup: https://login.matyukevich.cf-training.net/create_account
     logout: null
     messages: null
     notifications:
@@ -883,7 +941,8 @@ properties:
     shared_secret: loggregator-secret
   nats:
     debug: false
-    machines: 10.0.0.10
+    machines:
+    - 10.0.0.10
     monitor_port: 0
     password: nats
     port: 4222
@@ -899,11 +958,11 @@ properties:
   request_timeout_in_seconds: 900
   router:
     cipher_suites: null
-    debug_address: null
+    debug_address: 0.0.0.0:17003
     drain_wait: null
     enable_access_log_streaming: null
     enable_proxy: null
-    enable_ssl: null
+    enable_ssl: true
     extra_headers_to_log: null
     healthcheck_user_agent: null
     load_balancer_healthy_threshold: null
@@ -911,14 +970,91 @@ properties:
     logrotate: null
     port: null
     requested_route_registration_interval_in_seconds: null
-    route_services_recommend_https: null
-    route_services_secret: null
+    route_services_recommend_https: false
+    route_services_secret: route-services-secret
     route_services_secret_decrypt_only: null
     route_services_timeout: null
     secure_cookies: null
-    ssl_cert: null
-    ssl_key: null
-    ssl_skip_validation: null
+    ssl_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIGqTCCBRGgAwIBAgIJALiQgFdICQWiMA0GCSqGSIb3DQEBCwUAMIHOMQswCQYD
+      VQQGEwJVUzERMA8GA1UECBMITmV3IFlvcmsxETAPBgNVBAcTCE5ldyBZb3JrMRAw
+      DgYDVQQKEwdQaXZvdGFsMRYwFAYDVQQLEw1DbG91ZCBGb3VuZHJ5MUkwRwYDVQQD
+      FEAqLmxvY2FsLnBjZmRldi5pbywqLmxvZ2luLmxvY2FsLnBjZmRldi5pbywgKi51
+      YWEubG9jYWwucGNmZGV2LmlvMSQwIgYJKoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBp
+      dm90YWwuaW8wHhcNMTYwNDA2MjE1MTU1WhcNMTgwNDA2MjE1MTU1WjCBzjELMAkG
+      A1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhOZXcgWW9yazEQ
+      MA4GA1UEChMHUGl2b3RhbDEWMBQGA1UECxMNQ2xvdWQgRm91bmRyeTFJMEcGA1UE
+      AxRAKi5sb2NhbC5wY2ZkZXYuaW8sKi5sb2dpbi5sb2NhbC5wY2ZkZXYuaW8sICou
+      dWFhLmxvY2FsLnBjZmRldi5pbzEkMCIGCSqGSIb3DQEJARYVcGNmZGV2LWVuZ0Bw
+      aXZvdGFsLmlvMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAyFt7kzng
+      mcjaAghcnWzTjqmxBqDxxVeDORdUEncsDP1zW8rvP5HXIdkch8sqPFSL1aKcCwj2
+      ytIQLqKr3o0Gx8MIhxQfpGwNtg4nrNpKLim6agE8CuDMu9w9s3/fIhbQXKJE2Yz5
+      yNMo9UBtcNjX77EGUjjKD1GRgiQKeugfE+XQcc5IcniVZcSzJi8279951pXk1sDB
+      j9kczsP91z34UZnTCrtYXyk5iV7IYeTXB+UuNItIWm+gIYf6084Pz2ADtgMBswv6
+      LcCGZJBGluMCklrXg7Pn1CfaQOCPYj2fyt5YqQDGB5F8moWatw14ZxnsDBi2xqQK
+      ryJYa2vYdKiVIWewD4iRpS5HHVjETYNlu2W5ypfRfGXvc0110IhHS83+bcJoUFUn
+      u9bHo9qqshx/Bq6ew0iR12negzVHMI5R8+EupW2smmJu3n8d0L3NZA5eEfJgpvGd
+      DALuv0+dI0KLBAPMrgGq7B47l0ygvO+MOWudmzSzvsXvDxqs8q/8EqHvAgMBAAGj
+      ggGGMIIBgjBMBgNVHREERTBDghEqLmxvY2FsLnBjZmRldi5pb4IVKi51YWEubG9j
+      YWwucGNmZGV2LmlvghcqLmxvZ2luLmxvY2FsLnBjZmRldi5pbzAdBgNVHQ4EFgQU
+      5ir0R2vhcWqdd7Bm3HnflLQMIOQwggEDBgNVHSMEgfswgfiAFOYq9Edr4XFqnXew
+      Ztx535S0DCDkoYHUpIHRMIHOMQswCQYDVQQGEwJVUzERMA8GA1UECBMITmV3IFlv
+      cmsxETAPBgNVBAcTCE5ldyBZb3JrMRAwDgYDVQQKEwdQaXZvdGFsMRYwFAYDVQQL
+      Ew1DbG91ZCBGb3VuZHJ5MUkwRwYDVQQDFEAqLmxvY2FsLnBjZmRldi5pbywqLmxv
+      Z2luLmxvY2FsLnBjZmRldi5pbywgKi51YWEubG9jYWwucGNmZGV2LmlvMSQwIgYJ
+      KoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBpdm90YWwuaW+CCQC4kIBXSAkFojAMBgNV
+      HRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBgQBB9E/Mc/Zq/RJlLiu20EU62xjw
+      WWYAPCGIvo64GvkC8N+mMZL8qHaSsYGKrvEPl30kIRaXfO2RT5Mhx8CyYhFVrWCq
+      oRMVY2Li0h2vMYhRIlAjxzn6ZVUbd50t6hEmXioh6LxbrUUg/AXfbMuv2sW94xjx
+      vjUul7ZO8JfC7Uk2g5rngC7yz4mXI1sXlIq0xpRAxdBMreH9uG48xlO6cE/5Xzim
+      AmjvPWaCBIgiiJmW9lpt3oB+vttHtNHY+mnYtx9iE/R9mCL513uhsTtqOKLPN1Vb
+      D9iouxOW4gXN7NnhNSKyzBVFh+SInj3moxcTQAgKbXOq6oaJEz61VedGVyh0ncpi
+      pbtzQcoxSC88pMTZgm8ZFT5aL+f3Pod7MMAeuY3R24+JtlOlW5VYvwRfl050u5rF
+      LgeP1t+Kpxpd0OxjShWhGoYD4MqJyfqPXjYSd5uSRRTxgZFuSrO+VjXcJfkBqfss
+      RaK+wxioZDzc5z3vDJjaZGFdtki6f2hwsF1UPVw=
+      -----END CERTIFICATE-----
+    ssl_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      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
+      -----END RSA PRIVATE KEY-----
+    ssl_skip_validation: true
     status:
       password: router-pass
       port: null
@@ -937,8 +1073,8 @@ properties:
     etcd:
       client_cert: ""
       client_key: ""
-  system_domain: 52.9.183.87.xip.io
-  system_domain_organization: SYSTEM_DOMAIN_ORGANIZATION
+  system_domain: matyukevich.cf-training.net
+  system_domain_organization: cf-training
   traffic_controller:
     disable_access_control: null
     etcd:
@@ -947,7 +1083,7 @@ properties:
     outgoing_port: 8084
     security_event_logging:
       enabled: false
-    zone: null
+    zone: z1
   uaa:
     admin:
       client_secret: admin-secret
@@ -989,7 +1125,7 @@ properties:
         authorized-grant-types: authorization_code,client_credentials,refresh_token
         autoapprove: true
         override: true
-        redirect-uri: https://login.52.9.183.87.xip.io
+        redirect-uri: https://login.matyukevich.cf-training.net
         scope: openid,oauth.approvals
         secret: login-client-secret
       notifications:
@@ -1005,7 +1141,7 @@ properties:
         authorized-grant-types: client_credentials,refresh_token
         secret: tcp-router-secret
     database: null
-    issuer: https://uaa.52.9.183.87.xip.io
+    issuer: https://uaa.matyukevich.cf-training.net
     jwt:
       signing_key: |+
         -----BEGIN RSA PRIVATE KEY-----
@@ -1055,12 +1191,60 @@ properties:
         - cloud_controller.admin
         - doppler.firehose
         name: admin
-        password: admin-secret
+        password: admin
     ssl:
       port: -1
-    sslCertificate: null
-    sslPrivateKey: null
-    url: https://uaa.52.9.183.87.xip.io
+    sslCertificate: |+
+      -----BEGIN CERTIFICATE-----
+      MIIDdjCCAl4CCQDutDq0s9mZ7zANBgkqhkiG9w0BAQsFADB9MQswCQYDVQQGEwJV
+      UzERMA8GA1UECBMITmV3LVlvcmsxETAPBgNVBAcTCE5ldyBZb3JrMRAwDgYDVQQK
+      EwdQaXZvdGFsMRAwDgYDVQQLEwdQQ0YgRGV2MSQwIgYJKoZIhvcNAQkBFhVwY2Zk
+      ZXYtZW5nQHBpdm90YWwuaW8wHhcNMTYwODI1MTYzNTQ1WhcNMTcwODI1MTYzNTQ1
+      WjB9MQswCQYDVQQGEwJVUzERMA8GA1UECBMITmV3LVlvcmsxETAPBgNVBAcTCE5l
+      dyBZb3JrMRAwDgYDVQQKEwdQaXZvdGFsMRAwDgYDVQQLEwdQQ0YgRGV2MSQwIgYJ
+      KoZIhvcNAQkBFhVwY2ZkZXYtZW5nQHBpdm90YWwuaW8wggEiMA0GCSqGSIb3DQEB
+      AQUAA4IBDwAwggEKAoIBAQCasAI1gTdYJihXfrV6MUD/uSHD0B5wkoA0j6N28pd1
+      yuRowwS5PWFYKOF3zffnjv9FhK445kSw25muLbE2J6mnYb0n6J+6/3A+CoidVAQl
+      dzz6gotPioXGhsnE1EyFtoFgzkzYhxMu5FBuD8Vl+ctlhFT7aH39c2Y7j79jx5ZE
+      zyV5k0S9yt8zCkvlrmLMdTI69wkySCh3JZavfYgTD6tGN8YbVbVOsUEvEjg5qznK
+      l1y4jlZAvAN1tkfNX46NPty2pLsQZhZKV0RDSZSos8D4IUqjxlhZlRVDnQG3h2e4
+      v8sFoUNlpkbdDClyC00cVjFFXFq/ibUsImrpqBD4/EIFAgMBAAEwDQYJKoZIhvcN
+      AQELBQADggEBAEHJjnBTdH97wgsbebfxsRi1MLb8Ido96PD/vbc9A9b2CxDD18Sa
+      VVvkA6qqT4eD0E2AqaWJbiSqBpMiJLq2TmZuw0NkZFI55wWFxCBUOrEiMu+XGkgz
+      Q3yYm+KvbtMjsNcWOsWylY2cmRSkGdUa/Q+jqudjmFCFXBB8sBnzLCgAbKiSEFwF
+      T+P0AhPVo994s0yQzMPzg/E5If3pbrDfreu7Qto36pNOA1RdvDM6Chq9gF90DEFd
+      QtLqZtbkcukO4iWu2RYVDPCJRy/qDXLoOOkvJblZM2jhp6owEB0xTKwI1QhNkdr7
+      8Q1hCLQ8VeJFKTaZcsVCc9vSr0uHeOCplsc=
+      -----END CERTIFICATE-----
+    sslPrivateKey: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpAIBAAKCAQEAmrACNYE3WCYoV361ejFA/7khw9AecJKANI+jdvKXdcrkaMME
+      uT1hWCjhd833547/RYSuOOZEsNuZri2xNiepp2G9J+ifuv9wPgqInVQEJXc8+oKL
+      T4qFxobJxNRMhbaBYM5M2IcTLuRQbg/FZfnLZYRU+2h9/XNmO4+/Y8eWRM8leZNE
+      vcrfMwpL5a5izHUyOvcJMkgodyWWr32IEw+rRjfGG1W1TrFBLxI4Oas5ypdcuI5W
+      QLwDdbZHzV+OjT7ctqS7EGYWSldEQ0mUqLPA+CFKo8ZYWZUVQ50Bt4dnuL/LBaFD
+      ZaZG3QwpcgtNHFYxRVxav4m1LCJq6agQ+PxCBQIDAQABAoIBAE05fYDUp5qcQhuc
+      KGF+YWLJO/AT4H52xQZ4hzUE21R1HB6o7ZzE5eorTpSPASpbG1nLaWcCnlxk5Y4t
+      RYExv+LOSq631bZ3e8OdYqKYpRFHO+wcbAwjrbF07RoUmrdOa7y2gWq/1HXeicDI
+      otXMJRzjOcHhYrS7fdhSZUwdAgoLUYed9J195YNHPyQdUhn98+mYtSaHw5vXkzXB
+      owzIy+1GtiYQodoa74jiVO2l4Uo7cOVfw/iwE6Oj5WWZWncQ26rdDQUjyIL1gm7/
+      fk+wOYnDUjJC1dNeclMAEIktzsTkftNgC8w/2iBFBscInPaa8p/FDy9rY7feYd7q
+      VxZ2y8ECgYEAySKh0jqRoDQrWGtHF4SWu7ACBGE7jEmTMvfDF1Ld7Kpu07HFU98K
+      RiN+GczaLaPlelmc/lWeMvsY7ZxFO4HFSruJ+XeuxTgEIn8QJbLTyx0vb5TVt9Uc
+      V7m045hg/YLKKkKaNwjZZBzMmoO2h+7u02vnRuNzpaFhgMqufichBxkCgYEAxOHo
+      wqeichR53ye+FL/xQhNdD/btk8cT/DykqqH2PfFhGv/dh70jrHk/OaN8yVxhZKw2
+      NCA6dwQ8ChrUH35/2vgsLKIlZMSIs+hLq3clYoVqulsARnTiG0+klKr4WFGR4lzp
+      anD1ddl3Goi+TmiSqE0a4rfuye0LG5+3cPsHi80CgYEAkCowjrzIMGn0P5X1CNhS
+      KgkICRegVPdPeJK51PfidYXblgSviWQuuwMpmViJcXkuPDoLGwlHMQdlYLpHrVVg
+      kiZFyPeN33I9FHS6oCrDP6yVmYa2gONRQ1eqXg+URWD/grbmTlgbaXRy+rU5mcka
+      iZOn29mfxLIdbvDXjTiCpdECgYBlke5Uzcq+c9XTzFsBtWwvnHG8VLWIMYIb9OU2
+      qkuw9SAVn76X0nne9sYpZDByaVhNaZKlHaNL10FqLSEWBlrLipCvjg8gh0vHFKZF
+      FTiSNSY0cdIYhyBG2rWbhQCN/7b1Qt2gbhoT7FbHt5gGN2jBrtWZ9S4ZulKqs6Ed
+      hkQEWQKBgQCMrGxbbm4oxPNAnm2HIVi3wdzWXNSj8jJ92yVLcmwtOL5XyIvXXP0w
+      NJHPaDScrCLe+Rg2uesx3OUitaouwgi5qVNAnY9Q2LH7x1nUWhn9K4tKx9V6m8IR
+      KCP1QthazaNXbdGdY66hoHKSTCXzuvgJ+Irsr0+5PrdLgTZIu8UslA==
+      -----END RSA PRIVATE KEY-----
+    url: https://uaa.matyukevich.cf-training.net
     user: null
     zones:
       internal:
@@ -1071,8 +1255,8 @@ properties:
     databases:
     - name: uaadb
       tag: uaa
-    db_scheme: postgress
-    port: 55432
+    db_scheme: postgresql
+    port: 5432
     roles:
     - name: uaaadmin
       password: password
@@ -1083,170 +1267,21 @@ releases:
 resource_pools:
 - cloud_properties:
     availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: small_z1
-  network: cf1
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: small_z2
-  network: cf2
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: medium_z1
-  network: cf1
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: medium_z2
-  network: cf2
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 65536
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: large_z1
-  network: cf1
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 65536
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: large_z2
-  network: cf2
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 102400
-      type: gp2
-    instance_type: m3.large
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: runner_z1
-  network: cf1
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 102400
-      type: gp2
-    instance_type: m3.large
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: runner_z2
-  network: cf2
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    elbs:
-    - cfrouter
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: c3.large
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: router_z1
-  network: cf1
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    elbs:
-    - cfrouter
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: c3.large
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: router_z2
-  network: cf2
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
-    ephemeral_disk:
-      size: 10240
-      type: gp2
-    instance_type: m3.medium
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: small_errand
-  network: cf1
-  stemcell:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-    version: latest
-- cloud_properties:
-    availability_zone: us-west-1c
     instance_type: c3.xlarge
-  env:
-    bosh:
-      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
-  name: xlarge_errand
-  network: cf1
+    root_disk:
+      size: 40000
+      type: gp2
+  name: main
+  network: default
+  stemcell:
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    auto_assign_public_ip: true
+    availability_zone: us-west-1c
+    instance_type: c3.large
+  name: errand
+  network: default
   stemcell:
     name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
     version: latest
