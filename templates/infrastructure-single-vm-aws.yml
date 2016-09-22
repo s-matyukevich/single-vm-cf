@@ -157,7 +157,7 @@ properties:
     status:
       user: router-user
       password: router-pass
-    debug_address: 0.0.0.0:17003
+    debug_address: 0.0.0.0:18002
     enable_ssl: true
     ssl_cert: |
       -----BEGIN CERTIFICATE-----
